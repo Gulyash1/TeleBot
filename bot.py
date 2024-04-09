@@ -1,26 +1,20 @@
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
 import asyncio
-
-from aiogram.filters import CommandStart
-
-bot = Bot(token='7042221074:AAGukPmlTiFIdZeYl0TKxFy6nFON2a866LY')
-
-dp = Dispatcher(bot=bot)
-
-
-@dp.message(CommandStart())
-async def start(msg: types.Message) -> None:
-    await msg.answer('Hi!')
-@dp.message()
-async def echo(msg: types.Message) -> None:
-    await msg.answer(msg.text)
+from dotenv import load_dotenv
+import os
+from structure.handlers import rt
+load_dotenv()
 
 
 async def main() -> None:
-    # Initialize Bot instance with a default parse mode which will be passed to all API calls
-    # And the run events dispatching
+    bot = Bot(os.getenv('TOKEN'))
+    dp = Dispatcher(bot=bot)
+    dp.include_router(rt)
     await dp.start_polling(bot)
 
+
 if __name__ == '__main__':
-    asyncio.run(main())
-    #executor.start_polling(dp)
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print('Goodbye!')
