@@ -1,0 +1,21 @@
+services:
+  bot:
+    image: python:3.11-slim
+    container_name: telebot-bot
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite+aiosqlite:////data/db.sqlite3
+    volumes:
+      - ./:/app:rw
+      - db-data:/data
+    #command: sh -c "pip install --no-cache-dir -r requirements.txt && alembic upgrade head && python main.py"
+    command: sh -c "apt-get update && apt-get install -y sqlite3 && pip install --no-cache-dir -r requirements.txt &&
+      alembic upgrade head && python main.py"
+
+    restart: unless-stopped
+
+volumes:
+  db-data:

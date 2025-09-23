@@ -4,13 +4,16 @@ from aiogram.types import Message, CallbackQuery, BotCommand
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
+
 import structure.keyboards as key
 import structure.database.requests as req
+from structure.utils import foramt_maintance_list
+import logging
 
 from datetime import date
 rt = Router()
 
-
+logger = logging.getLogger(__name__)
 
 class Write_mileage(StatesGroup):
     mileage = State()
@@ -29,6 +32,7 @@ async def start(msg: Message) -> None:
 #     await callback.message.answer('Выбор', reply_markup=key.tech)
 @rt.message(F.text == 'Обслуживание')
 async def TOs(msg: Message) -> None:
+    logger.info("Выбор для обслуживания")
     await msg.answer('Выберите действие',reply_markup=key.tech)
 
 @rt.message(F.text == 'Расход')
@@ -37,22 +41,19 @@ async def exp(msg: Message) -> None:
 
 @rt.callback_query(F.data == 'write')
 async def write_callback(msg: Message, state: FSMContext) -> None:
+    logger.info("Ввод пробега")
     await state.set_state(Write_mileage.mileage)
     await msg.answer('Ввести пробег')
-
-# @rt.message(Command("writeto"))
-# async def write_callback(msg: Message, state: FSMContext) -> None:
-#     await state.set_state(Write_mileage.mileage)
-#     await msg.answer('Ввести пробег')
-
 @rt.message(Write_mileage.mileage)
 async def mileage_callback(msg: Message, state:FSMContext):
+    logger.info("Описание")
     await state.update_data(mileage=msg.text)
     await state.set_state(Write_mileage.description)
     await msg.answer('Что было сделано?')
 
 @rt.message(Write_mileage.description)
 async def description_callback(msg: Message, state: FSMContext):
+    logger.info("Дата")
     await state.update_data(description=msg.text)
     await state.set_state(Write_mileage.Date)
     await msg.answer('Дата',reply_markup=key.pick_date)
@@ -60,26 +61,75 @@ async def description_callback(msg: Message, state: FSMContext):
 
 @rt.callback_query(F.data == 'today')
 async def today_callback(callback: CallbackQuery, state: FSMContext):
-    await state.update_data(Date=date.today())
-    data = await state.get_data()
-    print(type(data['Date']), data['Date'])
-    await req.reg_maintance(data)
-    await callback.message.answer(f'Пробег: {data['mileage']}\nОписание: {data['description']}\nДата: {data['Date']}\n')
-    await state.clear()
+    try:
+        data = await state.get_data()
+        logger.info(f"Creating maintenance record with data: {data}")
+        
+        # Ensure we have all required fields
+        if not all(key in data for key in ['mileage', 'description']):
+            await callback.message.answer("Ошибка: Недостаточно данных для сохранения")
+            return
+            
+        # Add today's date
+        data['Date'] = date.today()
+        
+        # Try to save the record
+        success = await req.reg_maintance(data)
+        if success:
+            await callback.message.answer(
+                f"✅ Запись добавлена\n"
+                f"Пробег: {data['mileage']}\n"
+                f"Описание: {data['description']}\n"
+                f"Дата: {data['Date'].strftime('%d.%m.%Y')}"
+            )
+        else:
+            await callback.message.answer("❌ Не удалось сохранить запись. Попробуйте снова.")
+            
+    except Exception as e:
+        logger.error(f"Error in today_callback: {str(e)}", exc_info=True)
+        await callback.message.answer("❌ Произошла ошибка при сохранении. Пожалуйста, попробуйте снова.")
+    finally:
+        await state.clear()
+
 @rt.callback_query(F.data == 'not_today')
 async def not_today_callback(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer('Введите дату')
+    await callback.message.answer('Дата')
 
 @rt.message(Write_mileage.Date)
 async def final_callback(msg: Message, state: FSMContext):
     await state.update_data(Date=msg.text)
     data = await state.get_data()
-    await msg.answer(f'Пробег: {data['mileage']}\nОписание: {data['description']}\nДата: {data['Date']}\n')
+    logger.info(f"Custom date {data['Date']}")
+    await msg.answer(f"Пробег: {data['mileage']}\nОписание: {data['description']}\nДата: {data['Date']}\n")
     await req.reg_maintance(data)
     await state.clear()
 
 
+@rt.callback_query(F.data == 'last')
+async def get_last(callback: CallbackQuery):
+    items = await req.get_all_maintance(latest=True)
+    if not items:
+        await callback.message.answer('История пуста')
+        return
+    formated_date = items.date.strftime('%d.%m.%Y')
+    #msg = f"Последнее ТО:\n | Дата | Пробег | Описание |\n | {formated_date} | {items.mileage} | {items.description} |"
+    msg = f'*Последнее ТО*:\n*Дата:*\n{formated_date}\n*Пробег:*\n{items.mileage}км \n*Описание:*\n{items.description}'
+    await callback.message.answer(msg, parse_mode='Markdown')
+    #await callback.message.answer(f'Последнее ТО:\nДата: {last.date}\nПробег: {last.mileage}\nОписание: {last.description}')
 
+@rt.callback_query(F.data == 'history')
+async def get_history(callback: CallbackQuery):
+    logger.info("Вызов истории")
+    items = await req.get_all_maintance()
+    if not items:
+        logger.info("Возвращаем пустую историю")
+        await callback.message.answer('История пуста')
+        return
+    msg = foramt_maintance_list(items)
+    await callback.message.answer(msg)
+
+    # for item in items:
+    #     await callback.message.answer(f'Дата: {item.date}\nПробег: {item.mileage}\nОписание: {item.description}')
 # @rt.message(BotCommand == 'write')
 # async def test(msg: Message) -> None:
 #     await msg.answer('test')
@@ -94,4 +144,3 @@ async def final_callback(msg: Message, state: FSMContext):
 #     data = await state.get_data()
 #     await msg.answer('data')
 #     await state.clear()
-
