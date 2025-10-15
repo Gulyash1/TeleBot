@@ -35,6 +35,7 @@ class TO(Base):
     date: Mapped[Date] = mapped_column(Date, nullable=False)
     mileage: Mapped[int] = mapped_column()
     description: Mapped[str] = mapped_column(String)
+    mark: Mapped[bool] = mapped_column()
 
 class Exp(Base):
     __tablename__ = 'expends'

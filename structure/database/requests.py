@@ -3,7 +3,9 @@ import datetime
 from structure.database.models import async_session
 from structure.database.models import User, TO, Exp
 from sqlalchemy import select
+from structure.utils import find_markup_words
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,16 +21,14 @@ async def reg_maintance(data):
     try:
         async with async_session() as session:
             logger.info(f"Received data for maintenance: {data}")
-            
-            # Handle date conversion
+
             if isinstance(data['Date'], str):
                 convert_date = datetime.datetime.strptime(data['Date'], '%d.%m.%Y').date()
             else:
                 convert_date = data['Date']  # Already a date object
                 
             logger.info(f"Using date: {convert_date} (type: {type(convert_date)})")
-            
-            # Convert mileage to int
+
             try:
                 mileage = int(data['mileage'])
             except (ValueError, TypeError) as e:
@@ -40,7 +40,10 @@ async def reg_maintance(data):
                 select(TO)
                 .where(TO.date == convert_date)
             )
-            
+            if data['Mark'] == 'mark_no':
+                markup = find_markup_words(data['description'])
+            else:
+                markup = True
             if existing:
                 # Update existing record
                 existing.mileage = mileage
@@ -52,7 +55,8 @@ async def reg_maintance(data):
                 maintenance = TO(
                     date=convert_date,
                     mileage=mileage,
-                    description=str(data['description'])
+                    description=str(data['description']),
+                    mark=markup
                 )
                 session.add(maintenance)
                 logger.info("Created new maintenance record")

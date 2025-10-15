@@ -24,9 +24,10 @@ pick_date = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Сегодня', callback_data='today')],
     [InlineKeyboardButton(text='Не сегодня', callback_data='not_today')]
 ])
-# pick_date = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Сегодня', callback_data='today')],
-#                                           [KeyboardButton(text='Не сегодня', callback_data='not_today')]],
-#                                 resize_keyboard=True)
+set_mark = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Да', callback_data='mark_yes')],
+    [InlineKeyboardButton(text='Нет', callback_data='mark_no')]
+])
 
 
 back = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='На главную')]],
