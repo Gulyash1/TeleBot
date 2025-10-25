@@ -1,7 +1,8 @@
 import datetime
+from decimal import Decimal
 
-from structure.database.models import async_session
-from structure.database.models import User, TO, Exp
+from structure.database.models import User, TO, Consumption
+from structure.database.session import async_session
 from sqlalchemy import select
 from structure.utils import find_markup_words
 import logging
@@ -40,7 +41,7 @@ async def reg_maintance(data):
                 select(TO)
                 .where(TO.date == convert_date)
             )
-            if data['Mark'] == 'mark_no':
+            if data['mark'] == 'mark_no':
                 markup = find_markup_words(data['description'])
             else:
                 markup = True
@@ -74,8 +75,63 @@ async def reg_maintance(data):
 
 async def get_all_maintance(latest: bool = False):
     async with async_session() as session:
-        if latest:
-            return await session.scalar(select(TO).order_by(TO.date.desc()).limit(1))
-        else:
-            result = await session.scalars(select(TO).order_by(TO.date.asc()))
-            return result.all()
+        result = await session.scalars(
+            select(TO).
+            order_by(TO.date.asc())
+        )
+        return result.all()
+
+async def get_last_maintance():
+    async with async_session() as session:
+        return await session.scalar(
+            select(TO).
+            where(TO.mark == True).
+            order_by(TO.date.desc()).
+            limit(1)
+        )
+
+
+
+async def reg_consumption(data):
+    try:
+        consumption = Consumption(
+            date=data['Date'],
+            liters=Decimal(str(data['liters'])),
+            mileage=data['mileage'],
+            mean=Decimal(str(data['avg']))
+        )
+        async with async_session() as session:
+            existing = await session.scalar(
+                select(Consumption)
+                .where(Consumption.date == data['Date'])
+            )
+            if existing:
+                existing.liters = Decimal(str(data['liters']))
+                existing.mileage = data['mileage']
+                existing.mean = Decimal(str(data['avg']))
+                await session.merge(existing)
+                return True
+            else:
+                session.add(consumption)
+            await session.commit()
+            return True
+    except Exception as e:
+        if 'session' in locals():
+            await session.rollback()
+        return False
+
+async def get_last_consumption():
+    async with async_session() as session:
+        return await session.scalar(
+            select(Consumption).
+            order_by(Consumption.date.desc()).
+            limit(1)
+        )
+
+async def get_all_consumption():
+    async with async_session() as session:
+        result = await session.scalars(
+            select(Consumption).
+            order_by(Consumption.date.asc())
+        )
+        return result.all()

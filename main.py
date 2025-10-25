@@ -1,12 +1,14 @@
 import asyncio
 import logging
 import os
-from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import BotCommand
+from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from structure.handlers import rt
-from structure.database.models import db_main
+from structure.handlers.start_handler import rt
+from structure.handlers.maintance import router
+from structure.handlers.back_to_main import rt_to_main
+from structure.handlers.consumption import consumption_router
+from structure.database.session import init_models
 load_dotenv()
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -19,12 +21,16 @@ logger = logging.getLogger("telebot")
 
 async def bot_main() -> None:
     logger.info("Initializing database...")
-    await db_main()
+    await init_models()
     logger.info("Database initialized")
 
     bot = Bot(os.getenv('TOKEN'))
-    dp = Dispatcher(bot=bot)
+    dp = Dispatcher()
     dp.include_router(rt)
+    dp.include_router(router)
+    dp.include_router(consumption_router)
+    dp.include_router(rt_to_main)
+
 
     logger.info("Starting bot polling")
     await dp.start_polling(bot)

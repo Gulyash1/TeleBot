@@ -5,7 +5,7 @@ from sqlalchemy import pool
 import os
 import sys
 from alembic import context
-from structure.database.models import Base
+from structure.database.base import Base
 
 # Ensure project root on sys.path
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
