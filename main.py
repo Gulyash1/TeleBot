@@ -4,7 +4,6 @@ import os
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from dotenv import load_dotenv
-from logging.handlers import RotatingFileHandler
 
 from structure.handlers.start_handler import rt
 from structure.handlers.maintance import router
@@ -13,20 +12,12 @@ from structure.handlers.consumption import consumption_router
 from structure.database.session import init_models
 load_dotenv()
 
-
-handler = RotatingFileHandler(
-    "bot.log",
-    maxBytes=10_000_000,
-    backupCount=5
-)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),
-    filename='bot.log',
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
 )
 logger = logging.getLogger("telebot")
-print(os.getenv('PROXY_URL'))
 
 async def bot_main() -> None:
     logger.info("Initializing database...")
@@ -50,5 +41,6 @@ async def bot_main() -> None:
 if __name__ == '__main__':
     try:
         asyncio.run(bot_main())
-    except KeyboardInterrupt:
-        logger.info('Goodbye!')
+    except Exception as e:
+        logging.exception("FATAL ERROR")
+        raise
