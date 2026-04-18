@@ -30,7 +30,7 @@ async def write_consumption_callback(callback: CallbackQuery, state: FSMContext)
 async def consumption_data_callback(msg: Message, state: FSMContext):
     lines = msg.text.split('\n')
     mileage, liters = lines
-    mileage = int(mileage.strip())
+    mileage = float(mileage.strip())
 
     if mileage > 1000:
         last = await req.get_last_consumption()

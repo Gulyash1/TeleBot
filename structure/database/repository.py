@@ -31,7 +31,7 @@ async def reg_maintance(data):
             logger.info(f"Using date: {convert_date} (type: {type(convert_date)})")
 
             try:
-                mileage = int(data['mileage'])
+                mileage = float(data['mileage'])
             except (ValueError, TypeError) as e:
                 logger.error(f"Error converting mileage to int: {e}")
                 raise ValueError("Mileage must be a number")
