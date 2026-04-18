@@ -26,6 +26,6 @@ class Consumption(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     date: Mapped[Date] = mapped_column(Date, nullable=False, index=True)
-    mileage: Mapped[int] = mapped_column()
+    mileage: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     liters: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
     mean: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
