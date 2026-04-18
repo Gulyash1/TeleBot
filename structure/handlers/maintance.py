@@ -10,34 +10,34 @@ from structure.utils import format_maintance_list
 router = Router()
 
 
-class maintance(StatesGroup):
+class Maintance(StatesGroup):
     data = State()
     mark = State()
     Date = State()
 
 @router.callback_query(F.data == 'maintance')
-async def maintance_callback(callback: CallbackQuery, state: FSMContext):
+async def maintance_callback(callback: CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=key.tech)
     await callback.answer()
 
 @router.callback_query(F.data == 'write_maintance')
 async def write_maintance_callback(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(maintance.data)
+    await state.set_state(Maintance.data)
     await callback.answer('Ввод данных')
 
-@router.message(maintance.data)
+@router.message(Maintance.data)
 async def maintance_data_callback(msg: Message, state: FSMContext):
     lines = msg.text.split('\n')
     mileage, description = lines
     mileage = int(mileage.strip())
     await state.update_data(mileage=mileage, description=description)
-    await state.set_state(maintance.mark)
+    await state.set_state(Maintance.mark)
     await msg.answer('Поставить отметку?', reply_markup=key.set_mark)
 
-@router.callback_query(maintance.mark)
+@router.callback_query(Maintance.mark)
 async def maintance_mark_callback(callback: CallbackQuery, state: FSMContext):
     await state.update_data(mark=callback.data)
-    await state.set_state(maintance.Date)
+    await state.set_state(Maintance.Date)
     #await callback.answer('Дата', reply_markup=key.pick_date)
     await callback.message.edit_text('Дата', reply_markup=key.pick_date)
 
@@ -55,7 +55,7 @@ async def not_today_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer('Дата в формате ДД.ММ.ГГ')
 
 
-@router.message(maintance.Date)
+@router.message(Maintance.Date)
 async def final_callback(msg: Message, state: FSMContext):
     try:
         parsed_date = datetime.strptime(msg.text.strip(), "%d.%m.%y").date()

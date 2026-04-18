@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
 from dotenv import load_dotenv
 
 from structure.handlers.start_handler import rt
@@ -11,20 +12,22 @@ from structure.handlers.consumption import consumption_router
 from structure.database.session import init_models
 load_dotenv()
 
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
 )
 logger = logging.getLogger("telebot")
-
+print(os.getenv('PROXY_URL'))
 
 async def bot_main() -> None:
     logger.info("Initializing database...")
     await init_models()
     logger.info("Database initialized")
 
-    bot = Bot(os.getenv('TOKEN'))
+    session = AiohttpSession(proxy=os.getenv('PROXY_URL'))
+    bot = Bot(os.getenv('TOKEN'), session=session)
     dp = Dispatcher()
     dp.include_router(rt)
     dp.include_router(router)

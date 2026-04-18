@@ -11,22 +11,22 @@ from structure.database import repository as req
 
 consumption_router = Router()
 
-class consumption(StatesGroup):
+class Consumption(StatesGroup):
     Data = State()
 
 
 
 @consumption_router.callback_query(F.data == 'consumption')
-async def write_consumption_callback(callback: CallbackQuery, state: FSMContext):
+async def write_consumption_callback(callback: CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=key.expend)
     await callback.answer()
 
 @consumption_router.callback_query(F.data == 'write_consumption')
 async def write_consumption_callback(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(consumption.Data)
+    await state.set_state(Consumption.Data)
     await callback.answer('Введите данные в формате:\nПробег\nЛитры')
 
-@consumption_router.message(consumption.Data)
+@consumption_router.message(Consumption.Data)
 async def consumption_data_callback(msg: Message, state: FSMContext):
     lines = msg.text.split('\n')
     mileage, liters = lines
