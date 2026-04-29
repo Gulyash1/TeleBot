@@ -8,6 +8,8 @@ from aiogram.types import CallbackQuery, Message
 import structure.keyboards as key
 import structure.database.repository as req
 from structure.utils import format_maintance_list
+from main import logger
+
 router = Router()
 
 
@@ -30,7 +32,7 @@ async def write_maintance_callback(callback: CallbackQuery, state: FSMContext):
 async def maintance_data_callback(msg: Message, state: FSMContext):
     lines = msg.text.split('\n')
     mileage, description = lines
-    logging.info(f'State[{FSMContext.get_data}] - полученные данные:'
+    logger.info(f'State[{FSMContext.get_data}] - полученные данные:'
                  f' mileage {mileage},'
                  f' description {description}')
     mileage = int(mileage.strip())
@@ -63,10 +65,12 @@ async def not_today_callback(callback: CallbackQuery, state: FSMContext):
 async def final_callback(msg: Message, state: FSMContext):
     logging.info(f'Полученная дата - {msg.text}')
     data = msg.text.strip()
+    logger.info(f"DATA TYPE: {type(data)} | VALUE: {data}")
     for formater in ("%d.%m.%Y", "%d.%m.%y"):
         try:
-            parsed_date = datetime.strptime(data, formater).date()
-            logging.info(f'formated date - {parsed_date}')
+
+            parsed_date = datetime.strptime(data["Date"], formater).date()
+            logger.info(f'formated date - {parsed_date}')
             await state.update_data(Date=parsed_date)
 
             data = await state.get_data()
