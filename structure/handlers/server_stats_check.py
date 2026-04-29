@@ -11,7 +11,9 @@ stats_router = Router()
 
 START_TIME = time.time()
 
-ALLOWED_USERS = os.getenv('ADMIN_ID')
+ALLOWED_USERS = {
+    int(os.getenv('ADMIN_ID'))
+}
 
 
 @stats_router.message(lambda msg: msg.text == "/stats")
