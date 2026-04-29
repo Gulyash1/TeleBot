@@ -3,11 +3,13 @@ import time
 import psutil
 from aiogram import Router
 from aiogram.types import Message
+from dotenv import load_dotenv
+
+load_dotenv()
 
 stats_router = Router()
 
 START_TIME = time.time()
-
 
 ALLOWED_USERS = os.getenv('ADMIN_ID')
 
