@@ -8,10 +8,9 @@ from aiogram.types import CallbackQuery, Message
 import structure.keyboards as key
 import structure.database.repository as req
 from structure.utils import format_maintance_list
-from main import logger
 
 router = Router()
-
+logger = logging.getLogger(__name__)
 
 class Maintance(StatesGroup):
     data = State()
