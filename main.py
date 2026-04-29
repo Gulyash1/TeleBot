@@ -36,8 +36,6 @@ async def bot_main() -> None:
     await init_models()
     logger.info("Database initialized")
 
-    #session = AiohttpSession(proxy=os.getenv('PROXY_URL'))
-    #bot = Bot(os.getenv('TOKEN'), session=session)
     bot = Bot(os.getenv('TOKEN'))
     dp = Dispatcher()
     dp.include_router(rt)
