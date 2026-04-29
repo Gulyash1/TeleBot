@@ -62,7 +62,6 @@ async def not_today_callback(callback: CallbackQuery, state: FSMContext):
 @router.message(Maintance.Date)
 async def final_callback(msg: Message, state: FSMContext):
     logging.info(f'Полученная дата - {msg.text}')
-    logging.info(f'Text to date {datetime.strptime(msg.text.strip(), "%d.%m.%y").date()}')
     try:
         parsed_date = datetime.strptime(msg.text.strip(), "%d.%m.%y").date()
         logging.info(f'formated date - {parsed_date}')
