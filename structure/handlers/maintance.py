@@ -68,14 +68,19 @@ async def final_callback(msg: Message, state: FSMContext):
     for formater in ("%d.%m.%Y", "%d.%m.%y"):
         try:
 
-            parsed_date = datetime.strptime(data["Date"], formater).date()
+            parsed_date = datetime.strptime(data, formater).date()
             logger.info(f'formated date - {parsed_date}')
-            await state.update_data(Date=parsed_date)
-
-            data = await state.get_data()
-            await save_maintance(msg, data)
+            break
         except ValueError:
-            await msg.answer(f'Неверный формат даты')
+            continue
+    if not parsed_date:
+        await msg.answer('Неверный формат даты. Используй ДД.ММ.ГГ или ДД.ММ.ГГГГ')
+
+    await state.update_data(Date=parsed_date)
+
+    data = await state.get_data()
+    await save_maintance(msg, data)
+
     await state.clear()
 
 
