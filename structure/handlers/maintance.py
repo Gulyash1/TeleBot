@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime
 
 from aiogram import Router, F
@@ -23,12 +24,15 @@ async def maintance_callback(callback: CallbackQuery):
 @router.callback_query(F.data == 'write_maintance')
 async def write_maintance_callback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Maintance.data)
-    await callback.answer('Ввод данных')
+    await callback.answer('Ввод данных в формате\nПробег\nОписание')
 
 @router.message(Maintance.data)
 async def maintance_data_callback(msg: Message, state: FSMContext):
     lines = msg.text.split('\n')
     mileage, description = lines
+    logging.info(f'State[{FSMContext.get_data}] - полученные данные:'
+                 f' mileage {mileage},'
+                 f' description {description}')
     mileage = int(mileage.strip())
     await state.update_data(mileage=mileage, description=description)
     await state.set_state(Maintance.mark)
@@ -52,13 +56,16 @@ async def today_callback(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == 'not_today')
 async def not_today_callback(callback: CallbackQuery, state: FSMContext):
-    await callback.message.answer('Дата в формате ДД.ММ.ГГ')
+    await callback.message.answer('Дата в формате ДД.ММ.ГГ\nПример: 11.09.01')
 
 
 @router.message(Maintance.Date)
 async def final_callback(msg: Message, state: FSMContext):
+    logging.info(f'Полученная дата - {msg.text}')
+    logging.info(f'Text to date {datetime.strptime(msg.text.strip(), "%d.%m.%y").date()}')
     try:
         parsed_date = datetime.strptime(msg.text.strip(), "%d.%m.%y").date()
+        logging.info(f'formated date - {parsed_date}')
         await state.update_data(Date=parsed_date)
 
         data = await state.get_data()
@@ -66,6 +73,7 @@ async def final_callback(msg: Message, state: FSMContext):
     except ValueError:
         await msg.answer('Дата в формате ДД.ММ.ГГ')
     await state.clear()
+    await msg.answer("Выберите действие",reply_markup=key.main)
 
 
 async def save_maintance(target, data: dict):

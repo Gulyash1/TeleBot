@@ -1,9 +1,12 @@
 import asyncio
 import logging
 import os
+from logging.handlers import RotatingFileHandler
+
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from dotenv import load_dotenv
+
 
 from structure.handlers.start_handler import rt
 from structure.handlers.maintance import router
@@ -12,10 +15,19 @@ from structure.handlers.consumption import consumption_router
 from structure.database.session import init_models
 load_dotenv()
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG").upper()
+
+console = logging.StreamHandler()
+handler = RotatingFileHandler(
+    "logs/bot.log",
+    maxBytes=10_000_000,
+    backupCount=5
+)
+
 logging.basicConfig(
-    level=getattr(logging, LOG_LEVEL, logging.INFO),
-    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+    level=LOG_LEVEL,
+    handlers=[handler, console],
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s"
 )
 logger = logging.getLogger("telebot")
 
@@ -24,8 +36,9 @@ async def bot_main() -> None:
     await init_models()
     logger.info("Database initialized")
 
-    session = AiohttpSession(proxy=os.getenv('PROXY_URL'))
-    bot = Bot(os.getenv('TOKEN'), session=session)
+    #session = AiohttpSession(proxy=os.getenv('PROXY_URL'))
+    #bot = Bot(os.getenv('TOKEN'), session=session)
+    bot = Bot(os.getenv('TOKEN'))
     dp = Dispatcher()
     dp.include_router(rt)
     dp.include_router(router)

@@ -17,7 +17,11 @@ def format_maintance_list(items):
         if item.mark:
             text = f"🔵<b><i>{text}</i></b>🔵"
         date_str = item.date.strftime('%d.%m.%Y')
-        table += f"│{i+1}│ {date_str:<10} │ {item.mileage:<7}км │\n {text}\n"
+        target_date = datetime.strptime("16.03.2026", "%d.%m.%Y").date()
+        if item.date > target_date:
+            table += f"│{i + 1}│ {date_str:<10} │ {item.mileage:<7}км ({248641 + (item.mileage - 173325)}) │\n {text}\n"
+        else:
+            table += f"│{i+1}│ {date_str:<10} │ {item.mileage:<7}км │\n {text}\n"
         if i < end - 1:
             table += "──────────────────\n"
 
@@ -47,6 +51,6 @@ def format_consumption_list(items):
 
     for i, item in enumerate(items):
         date_str = item.date.strftime('%d.%m.%Y')
-        table += f"│{i+1}│ {date_str:<10} │ {item.mileage:<7}км │ {item.liters:<7}л │ {item.mean:<7}л/100км │\n"
+        table += f"│{i+1}│ {date_str:<10} │ {item.mileage:<7}км │ {item.liters:<4}л │ {item.mean:<5}л/100км │\n"
 
     return table
