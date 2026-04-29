@@ -1,11 +1,10 @@
 import os
 import time
-import platform
 import psutil
 from aiogram import Router
 from aiogram.types import Message
 
-router = Router()
+stats_router = Router()
 
 START_TIME = time.time()
 

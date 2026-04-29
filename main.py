@@ -4,14 +4,10 @@ import os
 from logging.handlers import RotatingFileHandler
 
 from aiogram import Bot, Dispatcher
-from aiogram.client.session.aiohttp import AiohttpSession
 from dotenv import load_dotenv
 
+from structure.handlers import all_routers
 
-from structure.handlers.start_handler import rt
-from structure.handlers.maintance import router
-from structure.handlers.back_to_main import rt_to_main
-from structure.handlers.consumption import consumption_router
 from structure.database.session import init_models
 load_dotenv()
 
@@ -38,11 +34,8 @@ async def bot_main() -> None:
 
     bot = Bot(os.getenv('TOKEN'))
     dp = Dispatcher()
-    dp.include_router(rt)
-    dp.include_router(router)
-    dp.include_router(consumption_router)
-    dp.include_router(rt_to_main)
-
+    for rt in all_routers:
+        dp.include_router(rt)
 
     logger.info("Starting bot polling")
     await dp.start_polling(bot)
