@@ -12,7 +12,7 @@ START_TIME = time.time()
 ALLOWED_USERS = os.getenv('ADMIN_ID')
 
 
-@router.message(lambda msg: msg.text == "/stats")
+@stats_router.message(lambda msg: msg.text == "/stats")
 async def stats_handler(msg: Message):
 
     if msg.from_user.id not in ALLOWED_USERS:

@@ -17,17 +17,17 @@ class Maintance(StatesGroup):
     mark = State()
     Date = State()
 
-@router.callback_query(F.data == 'maintance')
+@maintance_router.callback_query(F.data == 'maintance')
 async def maintance_callback(callback: CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=key.tech)
     await callback.answer()
 
-@router.callback_query(F.data == 'write_maintance')
+@maintance_router.callback_query(F.data == 'write_maintance')
 async def write_maintance_callback(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Maintance.data)
     await callback.answer('Ввод данных в формате\nПробег\nОписание')
 
-@router.message(Maintance.data)
+@maintance_router.message(Maintance.data)
 async def maintance_data_callback(msg: Message, state: FSMContext):
     lines = msg.text.split('\n')
     mileage, description = lines
@@ -39,14 +39,14 @@ async def maintance_data_callback(msg: Message, state: FSMContext):
     await state.set_state(Maintance.mark)
     await msg.answer('Поставить отметку?', reply_markup=key.set_mark)
 
-@router.callback_query(Maintance.mark)
+@maintance_router.callback_query(Maintance.mark)
 async def maintance_mark_callback(callback: CallbackQuery, state: FSMContext):
     await state.update_data(mark=callback.data)
     await state.set_state(Maintance.Date)
     #await callback.answer('Дата', reply_markup=key.pick_date)
     await callback.message.edit_text('Дата', reply_markup=key.pick_date)
 
-@router.callback_query(F.data == 'today')
+@maintance_router.callback_query(F.data == 'today')
 async def today_callback(callback: CallbackQuery, state: FSMContext):
     await state.update_data(Date=date.today())
     data = await state.get_data()
@@ -55,12 +55,12 @@ async def today_callback(callback: CallbackQuery, state: FSMContext):
 
 
 
-@router.callback_query(F.data == 'not_today')
+@maintance_router.callback_query(F.data == 'not_today')
 async def not_today_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer('Дата в формате ДД.ММ.ГГ\nПример: 11.09.01')
 
 
-@router.message(Maintance.Date)
+@maintance_router.message(Maintance.Date)
 async def final_callback(msg: Message, state: FSMContext):
     logging.info(f'Полученная дата - {msg.text}')
     data = msg.text.strip()
@@ -102,7 +102,7 @@ async def save_maintance(target, data: dict):
 
 
 
-@router.callback_query(F.data == 'get_last_maintance')
+@maintance_router.callback_query(F.data == 'get_last_maintance')
 async def get_last_maintance(callback: CallbackQuery):
     items = await req.get_last_maintance()
     if not items:
@@ -113,7 +113,7 @@ async def get_last_maintance(callback: CallbackQuery):
     await callback.message.answer(msg, parse_mode='Markdown', reply_markup=key.main)
 
 
-@router.callback_query(F.data == 'get_all_history')
+@maintance_router.callback_query(F.data == 'get_all_history')
 async def get_all_maintance_history(callback: CallbackQuery):
     items = await req.get_all_maintance()
     if not items:
