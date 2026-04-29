@@ -62,17 +62,18 @@ async def not_today_callback(callback: CallbackQuery, state: FSMContext):
 @router.message(Maintance.Date)
 async def final_callback(msg: Message, state: FSMContext):
     logging.info(f'Полученная дата - {msg.text}')
-    try:
-        parsed_date = datetime.strptime(msg.text.strip(), "%d.%m.%y").date()
-        logging.info(f'formated date - {parsed_date}')
-        await state.update_data(Date=parsed_date)
+    data = msg.text.strip()
+    for formater in ("%d.%m.%Y", "%d.%m.%y"):
+        try:
+            parsed_date = datetime.strptime(data, formater).date()
+            logging.info(f'formated date - {parsed_date}')
+            await state.update_data(Date=parsed_date)
 
-        data = await state.get_data()
-        await save_maintance(msg, data)
-    except ValueError:
-        await msg.answer('Дата в формате ДД.ММ.ГГ')
+            data = await state.get_data()
+            await save_maintance(msg, data)
+        except ValueError:
+            await msg.answer(f'Неверный формат даты')
     await state.clear()
-    await msg.answer("Выберите действие",reply_markup=key.main)
 
 
 async def save_maintance(target, data: dict):
